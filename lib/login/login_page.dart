@@ -1,78 +1,81 @@
+import 'package:book_list_sample/login/login_model.dart';
+import 'package:book_list_sample/register/register_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'add_book_model.dart';
 
-class AddBookPage extends StatelessWidget {
+class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<AddBookModel>(
-      create: (_) => AddBookModel(),
+    return ChangeNotifierProvider<LoginModel>(
+      create: (_) => LoginModel(),
       child: Scaffold(
         appBar: AppBar(
-          title: Text('本を追加'),
+          title: Text('ログイン'),
         ),
         body: Center(
-          child: Consumer<AddBookModel>(builder: (context, model, child) {
+          child: Consumer<LoginModel>(builder: (context, model, child) {
             return Stack(
               children: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
                     children: [
-                      GestureDetector(
-                        child: SizedBox(
-                          width: 100,
-                          height: 160,
-                          child: model.imageFile != null
-                              ? Image.file(model.imageFile!)
-                              : Container(
-                                  color: Colors.grey,
-                                ),
-                        ),
-                        onTap: () async {
-                          await model.pickImage();
-                        },
-                      ),
                       TextField(
+                        controller: model.titleController,
                         decoration: InputDecoration(
-                          hintText: '本のタイトル',
+                          hintText: 'メールアドレス',
                         ),
                         onChanged: (text) {
-                          model.title = text;
+                          model.setEmail(text);
                         },
                       ),
                       SizedBox(
                         height: 8,
                       ),
                       TextField(
+                        controller: model.authorController,
                         decoration: InputDecoration(
-                          hintText: '本の著者',
+                          hintText: 'パスワード',
                         ),
                         onChanged: (text) {
-                          model.author = text;
+                          model.setPassword(text);
                         },
                       ),
                       SizedBox(
                         height: 16,
                       ),
                       ElevatedButton(
-                        onPressed: () async {
+                        onPressed:() async {
+                          model.startLoading();
                           // 追加の処理
                           try {
-                           model.startLoading();
-                           await model.addBook();
-                           Navigator.of(context).pop(true);
+                            await model.login();
+                            Navigator.of(context).pop();
                           } catch(e) {
                             final snackBar = SnackBar(
                               backgroundColor: Colors.red,
                               content: Text(e.toString()),
                             );
-                            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(snackBar);
                           } finally {
                             model.endLoading();
                           }
                         },
-                        child: Text('追加する'),
+                        child: Text('ログイン'),
+                      ),
+                      TextButton(
+                        onPressed:() async {
+                          // 画面遷移
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RegisterPage(),
+                              fullscreenDialog: true,
+                            ),
+                          );
+                        },
+                        child: Text('新規登録の方はこちら'),
                       ),
                     ],
                   ),
@@ -83,7 +86,7 @@ class AddBookPage extends StatelessWidget {
                     child: Center(
                       child: CircularProgressIndicator(),
                     ),
-                  )
+                  ),
               ],
             );
           }),
